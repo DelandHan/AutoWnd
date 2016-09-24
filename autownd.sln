@@ -10,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj",
 		{1EF03D1C-C32E-4FED-A0F2-6FF0C5502244} = {1EF03D1C-C32E-4FED-A0F2-6FF0C5502244}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{511451B7-C01A-47B6-87DB-D557642D68D5}"
+	ProjectSection(SolutionItems) = preProject
+		main.h = main.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

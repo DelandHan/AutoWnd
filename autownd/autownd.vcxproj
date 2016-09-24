@@ -136,7 +136,6 @@
   <ItemGroup>
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="GenWnd.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="WndProgram.h" />
   </ItemGroup>
   <ItemGroup>
