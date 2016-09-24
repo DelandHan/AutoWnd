@@ -77,9 +77,10 @@ IObject * autownd::Seed::create(const char * name, memory::ParamChain params)
 	return temp;
 }
 
-void autownd::Seed::addMsgMap(MsgPair* map)
+Seed* autownd::Seed::addMsgMap(MsgPair* map)
 {
 	theMsgMap.insert(*map);
+	return this;
 }
 
 void autownd::Seed::report(const char * name)

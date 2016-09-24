@@ -71,7 +71,7 @@ namespace autownd
 		IObject * create(const char * name, memory::ParamChain params);
 
 		//build message map;		
-		void addMsgMap(MsgPair* map);
+		Seed* addMsgMap(MsgPair* map);
 
 		inline IMsgWorker * getMsgBot(UINT msg) {
 			std::map<UINT, IMsgWorker*>::iterator it = theMsgMap.find(msg);
