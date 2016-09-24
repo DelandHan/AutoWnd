@@ -17,6 +17,9 @@ namespace autownd
 	class IObject
 	{
 	public:
+		virtual memory::Bullet get(const char * key) = 0;
+		virtual void set(memory::ParamChain paramlist) = 0;
+		virtual int perform(memory::ParamChain paramlist) = 0;
 	};
 
 	//Windows message related

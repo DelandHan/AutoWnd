@@ -23,7 +23,10 @@ int TestProgram::init(WndEngine * engine)
 		{ WM_DESTROY, this,&TestProgram::onClose }
 	};
 
-	engine->getSeed("GenWnd")->addMsgMap(msgMap)->create("main", {});
+	Seed * seed = engine->getSeed("GenWnd")->addMsgMap(msgMap);
+	
+	seed->create("main", { {"size",std::pair<int,int>(500,200)} })->perform({ {"show",0} });
+
 	return 0;
 }
 

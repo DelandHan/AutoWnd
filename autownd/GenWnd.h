@@ -26,7 +26,9 @@ namespace autownd
 		GenWnd(HWND wnd);
 		~GenWnd();
 
-
+		memory::Bullet get(const char * key) override;
+		void set(memory::ParamChain list) override;
+		int perform(memory::ParamChain list) override;
 
 	private:
 		HWND theHWnd;
