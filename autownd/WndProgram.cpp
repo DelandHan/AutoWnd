@@ -34,11 +34,7 @@ IWndObj* Seed::theNextOne = nullptr;
 
 HWND autownd::Seed::createGenWnd(memory::ParamChain params, WNDPROC proc)
 {
-	//params
-	const wchar_t * title = L"Title";
-	std::pair<int, int> size = { CW_USEDEFAULT , 0 };
-	HWND parent = 0;
-
+	//make class name automatically
 	static wchar_t clsname[3] = { 0,0,0 };
 	(*((int*)clsname))++;
 
@@ -61,6 +57,11 @@ HWND autownd::Seed::createGenWnd(memory::ParamChain params, WNDPROC proc)
 	wclass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wclass.lpszMenuName = 0;
 	wclass.hIconSm = 0;
+
+	//params
+	const wchar_t * title = L"Title";
+	std::pair<int, int> size = { CW_USEDEFAULT , 0 };
+	HWND parent = 0;
 
 	//stream params
 	for (const memory::Param * p = params.begin(); p != params.end(); p++)

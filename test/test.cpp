@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <iostream>
+#include "resource.h"
 using namespace std;
 
 using namespace autownd;
@@ -14,7 +15,8 @@ public:
 	MainWnd() {
 		Seed s;
 
-		s.initObj(this, { { "title",L"abc" },{ "size",std::pair<int,int>(500,600) } });
+//		s.initObj(this, { { "title",L"abc" },{ "size",std::pair<int,int>(500,600) } });
+		s.initForm(this, IDD_DIALOG1);
 
 		ShowWindow(wnd(), SW_SHOW);
 	}
@@ -23,7 +25,7 @@ public:
 	int onClose(WPARAM wparam, LPARAM lparam);
 };
 
-Seed::MsgPair<MainWnd> msgmap[] = { { WM_DESTROY, &MainWnd::onClose },{ WM_CREATE, &MainWnd::init } };
+Seed::MsgPair<MainWnd> msgmap[] = { { WM_COMMAND, &MainWnd::onClose },{ WM_INITDIALOG, &MainWnd::init } };
 Seed s(msgmap, 2);
 
 class TestProgram
