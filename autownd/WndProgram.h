@@ -16,6 +16,11 @@ namespace autownd
 	public:
 		IWndObj() {}
 		virtual ~IWndObj() {}
+
+		inline HWND wnd() { return theWnd; }
+
+	private:
+		friend class Seed;
 		HWND theWnd;
 	};
 
@@ -25,6 +30,14 @@ namespace autownd
 	public:
 		Seed() {};
 		~Seed() {};
+
+		template<class T> class MsgPair :public std::pair<UINT, int (T::*)(WPARAM wp, LPARAM lp)> { public:MsgPair(UINT msg, int (T::*fun)(WPARAM wp, LPARAM lp)) { first = msg; second = fun; } };
+
+		template<class T> Seed(MsgPair<T> * list, size_t size) {
+			for (size_t i = 0; i < size; i++) {
+				addMsgMap(list[i].first, list[i].second);
+			}
+		}
 
 		//create object and assign it to parent.
 		template<class T> int initObj(T* obj, memory::ParamChain params) {
