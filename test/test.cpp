@@ -2,6 +2,8 @@
 //
 
 #include "stdafx.h"
+#include <iostream>
+using namespace std;
 
 using namespace autownd;
 
@@ -9,28 +11,42 @@ class TestProgram
 	:public autownd::WndProgram
 {
 public:
-	int init(WndEngine * engine) override;
-	int onClose(HWND wnd, WPARAM wparam, LPARAM lparam);
+	int init() override;
 
 private:
 };
 
 TestProgram tp;
 
-int TestProgram::init(WndEngine * engine)
+class MainWnd
+	:public IWndObj
 {
-	static MsgBot<TestProgram> msgMap[] = {
-		{ WM_DESTROY, this,&TestProgram::onClose }
-	};
+public:
+	int init(WPARAM wparam, LPARAM lp);
+	int onClose(WPARAM wparam, LPARAM lparam);
+};
 
-	Seed * seed = engine->getSeed("GenWnd")->addMsgMap(msgMap);
+int TestProgram::init()
+{
+	MainWnd m;
+
+	Seed s;
 	
-	seed->create("main", { {"size",std::pair<int,int>(500,200)} })->perform({ {"show",0} });
+	s.addMsgMap(WM_DESTROY, &MainWnd::onClose);
+	s.addMsgMap(WM_CREATE, &MainWnd::init);
+	s.initObj(&m, { {"title",L"abc"}, {"size",std::pair<int,int>(500,600)} });
 
+	ShowWindow(m.theWnd, SW_SHOW);
 	return 0;
 }
 
-int TestProgram::onClose(HWND wnd, WPARAM wparam, LPARAM lparam)
+int MainWnd::init(WPARAM wparam, LPARAM lp)
+{
+	cout << "init" << endl;
+	return 1;
+}
+
+int MainWnd::onClose(WPARAM wparam, LPARAM lparam)
 {
 	PostQuitMessage(0);
 	return 1;

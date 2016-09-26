@@ -8,112 +8,69 @@ int main();
 
 namespace autownd
 {
-	class WndEngine;
-	class Seed;
 	class WndProgram;
-	class IObject;
-	class IMsgWorker;
+	class IWndObj;
 
-	class IObject
+	class IWndObj
 	{
 	public:
-		virtual memory::Bullet get(const char * key) = 0;
-		virtual void set(memory::ParamChain paramlist) = 0;
-		virtual int perform(memory::ParamChain paramlist) = 0;
+		IWndObj() {}
+		virtual ~IWndObj() {}
+		HWND theWnd;
 	};
-
-	//Windows message related
-
-	//the interface that our WndProce function use to call user-defined functions.
-	class IMsgWorker
-	{
-	public:
-		virtual int handle(HWND wnd, WPARAM wp, LPARAM lp) = 0;
-	};
-
-	typedef std::pair<UINT, IMsgWorker*> MsgPair;
-	template<class T>
-	class MsgBot
-		:public MsgPair
-	{
-	public:
-		class Bot
-			:public IMsgWorker
-		{
-		public:
-			int handle(HWND wnd, WPARAM wp, LPARAM lp) override {
-				return (theObject->*theFun)(wnd, wp, lp);
-			}
-
-			T * theObject;
-			int (T::*theFun)(HWND hWnd, WPARAM wp, LPARAM lp);
-		};
-
-		MsgBot(UINT msg, T * obj, int (T::*fun)(HWND hWnd, WPARAM wp, LPARAM lp)) {
-			theBot.theObject = obj;
-			theBot.theFun = fun;
-			first = msg;
-			second = &theBot;
-		}
-		~MsgBot() {}
-
-	private:
-		Bot theBot;
-	};
-
-	///////////////////////////////////
 
 	//the Seed which store the paramters to init the object.
 	class Seed
 	{
 	public:
-		Seed();
-		virtual ~Seed();
+		Seed() {};
+		~Seed() {};
 
 		//create object and assign it to parent.
-		IObject * create(const char * name, memory::ParamChain params);
-
-		//build message map;		
-		Seed* addMsgMap(MsgPair* map);
-
-		inline IMsgWorker * getMsgBot(UINT msg) {
-			std::map<UINT, IMsgWorker*>::iterator it = theMsgMap.find(msg);
-			if (it == theMsgMap.end()) return nullptr;
-			else return it->second;
+		template<class T> int initObj(T* obj, memory::ParamChain params) {
+			theNextOne = obj;
+			obj->theWnd = createGenWnd(params, Seed::WndProc<T>);
+			theNextOne = nullptr;
+			if (obj->theWnd == nullptr) return 0;
+			else return 1;
 		}
 
-	protected:
-		void report(const char * name);
-		static inline Seed* getSeed(const char * key) {
-			std::map<std::string, Seed*>::iterator it = theSeedSet.find(key);
-			if (it == theSeedSet.end()) return nullptr;
-			else return it->second;
+		template<class T>
+		static int (T::*addMsgMap(UINT msg, int (T::*fun)(WPARAM wp, LPARAM lp)))(WPARAM wp, LPARAM lp){
+			static std::map<UINT, int (T::*)(WPARAM wp, LPARAM lp)> msgMap;
+			if (fun) msgMap[msg] = fun;
+			else fun = msgMap[msg];
 
+			return fun;
 		}
 
 	private:
-		virtual IObject * initObj(memory::ParamChain params) = 0;
+		static IWndObj *theNextOne;
 
-		WndEngine * theParent;
+		HWND createGenWnd(memory::ParamChain params, WNDPROC proc);
 
-		static std::map<std::string, Seed*> theSeedSet;
-		std::map<UINT, IMsgWorker*> theMsgMap;
+		template<class T>
+		static T* addObjMap(HWND wnd, T* obj) {
+			static std::map<HWND, T*> objMap;
+			if (obj) objMap[wnd] = obj;
+			else obj = objMap[wnd];
 
-		friend class WndEngine;
-	};
+			return obj;
+		}
 
-	//our WndEngine which manages the objects and seeds.
-	class WndEngine
-	{
-	public:
-		WndEngine();
-		~WndEngine();
-		Seed * getSeed(const char *type);
-	private:
-		void addChilds(const char * name, IObject *obj);
-		std::map<std::string, IObject*> theObjSet;
-
-		friend class Seed;
+		template<class T> 
+		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+			T* obj = nullptr; 
+			if (theNextOne) {
+				obj = dynamic_cast<T*>(theNextOne);
+				addObjMap<T>(hWnd, obj);
+				theNextOne = nullptr;
+			}
+			else obj = addObjMap<T>(hWnd, nullptr);
+			int (T::*fun)(WPARAM wp, LPARAM lp); fun = addMsgMap<T>(message, nullptr);
+			if(obj==nullptr || fun==nullptr) return DefWindowProc(hWnd, message, wParam, lParam);
+			else return (obj->*fun)(wParam, lParam);
+		}
 	};
 
 	//Base class for programs
@@ -123,7 +80,7 @@ namespace autownd
 		WndProgram();
 		~WndProgram();
 
-		virtual int init(WndEngine * wndengine) = 0;
+		virtual int init() = 0;
 
 	private:
 		static WndProgram * theRunning;

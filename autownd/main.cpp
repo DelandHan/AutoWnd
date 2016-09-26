@@ -1,7 +1,5 @@
 #include "WndProgram.h"
 
-#include "GenWnd.h"
-
 using namespace autownd;
 
 
@@ -13,14 +11,10 @@ int main()
 	if (WndProgram::theRunning == nullptr) return 0;
 
 	/////////////////////////seeds//////////////////
-	GenWndSeed genWndSeed;
 	//////////////////////////////////////////////
 
-	//engine
-	WndEngine engine;
-
 	//start
-	WndProgram::theRunning->init(&engine);
+	WndProgram::theRunning->init();
 
 	return WndProgram::theRunning->runMsgLoop();
 }

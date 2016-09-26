@@ -27,9 +27,6 @@
     <ClInclude Include="WndProgram.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GenWnd.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bullet.cpp">
@@ -37,9 +34,6 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GenWnd.cpp">
-      <Filter>Objects</Filter>
     </ClCompile>
     <ClCompile Include="WndProgram.cpp">
       <Filter>Header Files</Filter>

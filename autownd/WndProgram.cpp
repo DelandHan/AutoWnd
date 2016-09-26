@@ -30,62 +30,53 @@ WndProgram* WndProgram::theRunning = nullptr;
 
 /////////////////////////////////////////////////
 
-WndEngine::WndEngine()
-{
-}
+IWndObj* Seed::theNextOne = nullptr;
 
-WndEngine::~WndEngine()
+HWND autownd::Seed::createGenWnd(memory::ParamChain params, WNDPROC proc)
 {
-	for (map<std::string, IObject*>::iterator it = theObjSet.begin(); it != theObjSet.end(); it++)
+	//params
+	const wchar_t * title = L"Title";
+	std::pair<int, int> size = { CW_USEDEFAULT , 0 };
+	HWND parent = 0;
+
+	static wchar_t clsname[3] = { 0,0,0 };
+	(*((int*)clsname))++;
+
+	//wnd class
+	WNDCLASSEX wclass;
+	ZeroMemory(&wclass, sizeof(WNDCLASSEX));
+
+	//fixed data
+	wclass.cbSize = sizeof(WNDCLASSEX);
+	wclass.hInstance = GetModuleHandle(0);
+	wclass.lpfnWndProc = proc;
+	wclass.lpszClassName = clsname;
+
+	//custmized data
+	wclass.style = CS_HREDRAW | CS_VREDRAW;
+	wclass.cbClsExtra = 0;
+	wclass.cbWndExtra = 0;
+	wclass.hIcon = 0;
+	wclass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wclass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wclass.lpszMenuName = 0;
+	wclass.hIconSm = 0;
+
+	//stream params
+	for (const memory::Param * p = params.begin(); p != params.end(); p++)
 	{
-		delete it->second;
+		if (memory::streql(p->first, "title")) p->second.inject(&title, 1);
+		if (memory::streql(p->first, "size")) p->second.inject(&size, 1);
+		if (memory::streql(p->first, "parent")) p->second.inject(&parent, 1);
 	}
+
+	//creating
+	RegisterClassEx(&wclass);
+	GetLastError();
+
+	HWND wnd = CreateWindow(clsname, title, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 0, size.first, size.second, parent, nullptr, GetModuleHandle(0), nullptr);
+	//CW_USEDEFAULT
+
+	return wnd;
 }
-
-Seed * WndEngine::getSeed(const char * type)
-{
-	map<std::string, Seed*>::iterator it = Seed::theSeedSet.find(type);
-
-	if (it == Seed::theSeedSet.end()) return nullptr; //type name wrong
-
-	it->second->theParent = this;
-	return it->second;
-}
-
-void autownd::WndEngine::addChilds(const char * name, IObject * obj)
-{
-	map<std::string, IObject*>::iterator it = theObjSet.find(name);
-	if (it != theObjSet.end()) return; //duplicate name
-	theObjSet.insert(pair<string, IObject*>(name, obj));
-}
-
-autownd::Seed::Seed()
-{
-}
-
-autownd::Seed::~Seed()
-{
-}
-
-map<std::string, Seed*> Seed::theSeedSet;
-
-IObject * autownd::Seed::create(const char * name, memory::ParamChain params)
-{
-	IObject * temp = this->initObj(params);
-	if (temp == nullptr) return nullptr;
-	theParent->addChilds(name, temp);
-	return temp;
-}
-
-Seed* autownd::Seed::addMsgMap(MsgPair* map)
-{
-	theMsgMap.insert(*map);
-	return this;
-}
-
-void autownd::Seed::report(const char * name)
-{
-	theSeedSet.insert(pair<string, Seed*>(name, this));
-}
-
-
