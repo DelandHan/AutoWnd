@@ -20,6 +20,8 @@ namespace autownd
 
 		inline HWND wnd() { return theWnd; }
 
+		int addControl(WndObj* obj, TCHAR * cname, memory::ParamChain params);
+
 		IMsgProcess* getMsgProc(UINT msg);
 		void setMsgSet(const MsgSet *set);
 

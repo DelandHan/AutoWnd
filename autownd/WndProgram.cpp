@@ -39,12 +39,6 @@ Seed::~Seed()
 
 void Seed::init(memory::ParamChain params)
 {
-	const wchar_t *cname = nullptr;
-	if (find(params, "classname", cname)) {
-		theName = cname;
-		return;
-	}
-
 	static wchar_t clsname[3] = { 0,0,0 };
 	(*((int*)clsname))++;
 	theName = clsname;
@@ -100,11 +94,12 @@ int Seed::create(WndObj *obj, memory::ParamChain params)
 
 	//creating
 	theAdding = obj;
-	obj->theWnd = CreateWindow(theName.c_str(), title, style,
+	CreateWindow(theName.c_str(), title, style,
 		pos.first, pos.second, size.first, size.second, parent, nullptr, GetModuleHandle(0), nullptr);
 	theAdding = nullptr;
 
-	return 0;
+	if (obj->theWnd == nullptr) return GetLastError();
+	else return 0;
 }
 
 int Seed::create(WndObj * obj, int resourceid)
@@ -114,10 +109,11 @@ int Seed::create(WndObj * obj, int resourceid)
 
 	//creating
 	theAdding = obj;
-	obj->theWnd = CreateDialog(GetModuleHandle(0), MAKEINTRESOURCE(resourceid), 0, DialProc);
+	CreateDialog(GetModuleHandle(0), MAKEINTRESOURCE(resourceid), 0, DialProc);
 	theAdding = nullptr;
 
-	return 0;
+	if (obj->theWnd == nullptr) return GetLastError();
+	else return 0;
 }
 
 LRESULT Seed::WndProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -180,6 +176,23 @@ WndObj::WndObj()
 WndObj::~WndObj()
 {	
 	theWndMap.erase(theWnd);
+}
+
+int autownd::WndObj::addControl(WndObj * obj, TCHAR * cname, ParamChain params)
+{
+	//params
+	const wchar_t * title = L"Title";
+	std::pair<int, int> size = { CW_USEDEFAULT , 0 }, pos = { CW_USEDEFAULT,0 };
+
+	//stream params
+	find(params, "title", title);
+	find(params, "size", size);
+	find(params, "pos", pos);
+
+	obj->theWnd = CreateWindow(cname, title, WS_CHILD, pos.first, pos.second, size.first, size.second, theWnd, 0, GetModuleHandle(0), nullptr);
+
+	if (obj->theWnd == nullptr) return GetLastError();
+	else return 0;
 }
 
 IMsgProcess * WndObj::getMsgProc(UINT msg)

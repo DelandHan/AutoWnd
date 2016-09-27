@@ -42,17 +42,8 @@ int TestProgram::init()
 		{ "size",pair<int,int>(700,400) }
 	});
 
+	mwnd.addControl(&testForm, L"Button", { { "title",L"ok" },{ "size",pair<int,int>(100,60) },{ "pos",pair<int,int>(20,20) } });
 
-	testForm.setMsgSet(&ms);
-	Seed se2;
-	se2.init({ { "classname",L"Button" } });
-	se2.create(&testForm, {
-		{"title",L"OK"},
-		{"style",WS_CHILD},
-		{"parent",mwnd.wnd()},
-		{"size",pair<int,int>(200,300)},
-		{"pos",pair<int,int>(20,20)}
-	});
 
 	ShowWindow(mwnd.wnd(), SW_SHOW);
 	ShowWindow(testForm.wnd(), SW_SHOW);
