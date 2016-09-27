@@ -4,131 +4,98 @@
 #include "Bullet.h"
 #include <Windows.h>
 
-int main();
-
 namespace autownd
 {
-	class WndEngine;
-	class Seed;
-	class WndProgram;
-	class IObject;
-	class IMsgWorker;
+	int msgLoop();
 
-	class IObject
+	class WndObj;
+	class IMsgProcess;
+	class MsgSet;
+
+	class WndObj
 	{
 	public:
-		virtual memory::Bullet get(const char * key) = 0;
-		virtual void set(memory::ParamChain paramlist) = 0;
-		virtual int perform(memory::ParamChain paramlist) = 0;
-	};
+		WndObj();
+		virtual ~WndObj();
 
-	//Windows message related
+		inline HWND wnd() { return theWnd; }
+		inline void show() { ShowWindow(theWnd, SW_SHOW); }
 
-	//the interface that our WndProce function use to call user-defined functions.
-	class IMsgWorker
-	{
-	public:
-		virtual int handle(HWND wnd, WPARAM wp, LPARAM lp) = 0;
-	};
+		int addControl(WndObj* obj, TCHAR * cname, memory::ParamChain params);
 
-	typedef std::pair<UINT, IMsgWorker*> MsgPair;
-	template<class T>
-	class MsgBot
-		:public MsgPair
-	{
-	public:
-		class Bot
-			:public IMsgWorker
-		{
-		public:
-			int handle(HWND wnd, WPARAM wp, LPARAM lp) override {
-				return (theObject->*theFun)(wnd, wp, lp);
-			}
-
-			T * theObject;
-			int (T::*theFun)(HWND hWnd, WPARAM wp, LPARAM lp);
-		};
-
-		MsgBot(UINT msg, T * obj, int (T::*fun)(HWND hWnd, WPARAM wp, LPARAM lp)) {
-			theBot.theObject = obj;
-			theBot.theFun = fun;
-			first = msg;
-			second = &theBot;
-		}
-		~MsgBot() {}
+		IMsgProcess* getMsgProc(UINT msg);
+		void setMsgSet(const MsgSet *set);
 
 	private:
-		Bot theBot;
+		friend class Seed;
+		const MsgSet *theMsgMap;
+		HWND theWnd;
+
+		static std::map<HWND, WndObj*> theWndMap;
 	};
 
-	///////////////////////////////////
+	//make the process
+	class IMsgProcess
+	{
+	public:
+		virtual int handleMsg(WndObj *obj, WPARAM wp, LPARAM lp) = 0;
+	};
 
-	//the Seed which store the paramters to init the object.
+	template<class T> class MsgProc
+		:public IMsgProcess
+	{
+	public:
+		MsgProc(T* obj, int(T::*fun)(WndObj *, WPARAM, LPARAM)) :theObj(obj), theFun(fun) {}
+		~MsgProc() {}
+
+		int handleMsg(WndObj *obj, WPARAM wp, LPARAM lp) override {
+			return (theObj->*theFun)(obj, wp, lp);
+		}
+	private:
+		T* theObj;
+		int (T::*theFun)(WndObj *, WPARAM, LPARAM);
+	};
+	////////
+
+	class MsgSet
+	{
+	public:
+		MsgSet();
+		template<class T> MsgSet(std::pair<UINT, T>* begin, std::pair<UINT, T>* end) {
+			addMsgPairs(begin, end);
+		}
+		~MsgSet();
+		IMsgProcess *retrieve(UINT msg) const;
+		void addMsgPair(UINT msg, IMsgProcess* proc);
+		template<class T> void addMsgPairs(std::pair<UINT, T>* begin, std::pair<UINT, T>* end) {
+			std::pair<UINT, T>* it = begin;
+			while (1) {
+				theMap.insert(std::pair<UINT, IMsgProcess*>(it->first, &it->second));
+				if (it == end) return;
+				it++;				
+			}
+		}
+	private:
+		std::map<UINT, IMsgProcess*> theMap;
+	};
+
+	//use to create Wnds
 	class Seed
 	{
 	public:
 		Seed();
-		virtual ~Seed();
+		~Seed();
+		void init(memory::ParamChain params);
 
-		//create object and assign it to parent.
-		IObject * create(const char * name, memory::ParamChain params);
-
-		//build message map;		
-		Seed* addMsgMap(MsgPair* map);
-
-		inline IMsgWorker * getMsgBot(UINT msg) {
-			std::map<UINT, IMsgWorker*>::iterator it = theMsgMap.find(msg);
-			if (it == theMsgMap.end()) return nullptr;
-			else return it->second;
-		}
-
-	protected:
-		void report(const char * name);
-		static inline Seed* getSeed(const char * key) {
-			std::map<std::string, Seed*>::iterator it = theSeedSet.find(key);
-			if (it == theSeedSet.end()) return nullptr;
-			else return it->second;
-
-		}
+		int create(WndObj *obj, memory::ParamChain params);
+		int create(WndObj *obj, int resourceid);
 
 	private:
-		virtual IObject * initObj(memory::ParamChain params) = 0;
-
-		WndEngine * theParent;
-
-		static std::map<std::string, Seed*> theSeedSet;
-		std::map<UINT, IMsgWorker*> theMsgMap;
-
-		friend class WndEngine;
+		std::wstring theName;
+		
+		static WndObj* theAdding;
+		static LRESULT CALLBACK WndProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp);
+		static INT_PTR CALLBACK DialProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp);
 	};
 
-	//our WndEngine which manages the objects and seeds.
-	class WndEngine
-	{
-	public:
-		WndEngine();
-		~WndEngine();
-		Seed * getSeed(const char *type);
-	private:
-		void addChilds(const char * name, IObject *obj);
-		std::map<std::string, IObject*> theObjSet;
-
-		friend class Seed;
-	};
-
-	//Base class for programs
-	class WndProgram
-	{
-	public:
-		WndProgram();
-		~WndProgram();
-
-		virtual int init(WndEngine * wndengine) = 0;
-
-	private:
-		static WndProgram * theRunning;
-		int runMsgLoop();
-
-		friend int ::main();
-	};
 }

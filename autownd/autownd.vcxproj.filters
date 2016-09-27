@@ -16,32 +16,32 @@
     <Filter Include="Objects">
       <UniqueIdentifier>{aaca2daa-0b23-44cc-87d9-2e39697b3254}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Units">
+      <UniqueIdentifier>{7ae5917d-00be-43b3-86de-e56732eb31c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Bullet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WndProgram.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GenWnd.h">
-      <Filter>Objects</Filter>
+    <ClInclude Include="Bullet.h">
+      <Filter>Units</Filter>
+    </ClInclude>
+    <ClInclude Include="Controls.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Bullet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GenWnd.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="WndProgram.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Bullet.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
+    <ClCompile Include="Controls.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>

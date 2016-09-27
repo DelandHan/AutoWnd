@@ -119,4 +119,16 @@ namespace memory
 		}
 		return false;
 	}
+
+	//find value
+	template<class T>
+	int find(const ParamChain params, const char* key, T& dest) {
+		for (ParamChain::iterator it = params.begin(); it != params.end(); it++) {
+			if (streql(it->first, key)) {
+				it->second.inject(&dest, 1);
+				return 1;
+			}
+		}
+		return 0;
+	}
 }
