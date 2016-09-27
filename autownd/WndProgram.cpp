@@ -3,49 +3,24 @@
 
 using namespace autownd;
 using namespace std;
+using namespace memory;
 
-WndProgram::WndProgram()
-{
-	theRunning = this;
-}
-
-
-WndProgram::~WndProgram()
-{
-	theRunning = nullptr;
-}
-
-int autownd::WndProgram::runMsgLoop()
-{
-	MSG msg;
-	while (GetMessage(&msg, 0, 0, 0))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	return msg.lParam;
-}
-
-WndProgram* WndProgram::theRunning = nullptr;
-
-/////////////////////////////////////////////////
-
-autownd::MsgSet::MsgSet()
+MsgSet::MsgSet()
 {
 }
 
-autownd::MsgSet::~MsgSet()
+MsgSet::~MsgSet()
 {
 }
 
-IMsgProcess * autownd::MsgSet::retrieve(UINT msg) const
+IMsgProcess * MsgSet::retrieve(UINT msg) const
 {
 	map<UINT, IMsgProcess*>::const_iterator it = theMap.find(msg);
 	if(it==theMap.end()) return nullptr;
 	else return it->second;
 }
 
-void autownd::MsgSet::addMsgPair(UINT msg, IMsgProcess * proc)
+void MsgSet::addMsgPair(UINT msg, IMsgProcess * proc)
 {
 	theMap.insert(pair<UINT, IMsgProcess*>(msg, proc));
 }
@@ -53,17 +28,23 @@ void autownd::MsgSet::addMsgPair(UINT msg, IMsgProcess * proc)
 ////////////////////////////////////////////////
 
 
-autownd::Seed::Seed()
+Seed::Seed()
 {
 
 }
 
-autownd::Seed::~Seed()
+Seed::~Seed()
 {
 }
 
-void autownd::Seed::init(memory::ParamChain params)
+void Seed::init(memory::ParamChain params)
 {
+	const wchar_t *cname = nullptr;
+	if (find(params, "classname", cname)) {
+		theName = cname;
+		return;
+	}
+
 	static wchar_t clsname[3] = { 0,0,0 };
 	(*((int*)clsname))++;
 	theName = clsname;
@@ -84,12 +65,20 @@ void autownd::Seed::init(memory::ParamChain params)
 	wndclass.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
+	/*
+	wcex.cbClsExtra     = 0;
+    wcex.cbWndExtra     = 0;
+    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WIN32PROJECT1));
+    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_WIN32PROJECT1);
+    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	*/
+
 	RegisterClassEx(&wndclass);
 }
 
 WndObj* Seed::theAdding;
 
-int autownd::Seed::create(WndObj *obj, memory::ParamChain params)
+int Seed::create(WndObj *obj, memory::ParamChain params)
 {
 	//no obj or obj already inited
 	if (obj == nullptr || obj->theWnd != nullptr) return 1;
@@ -98,42 +87,54 @@ int autownd::Seed::create(WndObj *obj, memory::ParamChain params)
 
 	//params
 	const wchar_t * title = L"Title";
-	std::pair<int, int> size = { CW_USEDEFAULT , 0 };
-	HWND parent = 0;
+	std::pair<int, int> size = { CW_USEDEFAULT , 0 }, pos = { CW_USEDEFAULT,0 };
+	HWND parent = nullptr;
+	long style = WS_OVERLAPPEDWINDOW;
 
 	//stream params
-	for (const memory::Param * p = params.begin(); p != params.end(); p++)
-	{
-		if (memory::streql(p->first, "title")) p->second.inject(&title, 1);
-		if (memory::streql(p->first, "size")) p->second.inject(&size, 1);
-		if (memory::streql(p->first, "parent")) p->second.inject(&parent, 1);
-	}
+	find(params, "title", title);
+	find(params, "size", size);
+	find(params, "parent", parent);
+	find(params, "style", style);
+	find(params, "pos", pos);
 
 	//creating
 	theAdding = obj;
-	CreateWindow(theName.c_str(), title, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, 0, size.first, size.second, parent, nullptr, GetModuleHandle(0), nullptr);
+	obj->theWnd = CreateWindow(theName.c_str(), title, style,
+		pos.first, pos.second, size.first, size.second, parent, nullptr, GetModuleHandle(0), nullptr);
 	theAdding = nullptr;
 
 	return 0;
 }
 
-LRESULT autownd::Seed::WndProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
+int Seed::create(WndObj * obj, int resourceid)
 {
-	static std::map<HWND, WndObj*> wndmap;
+	//no obj or obj already inited
+	if (obj == nullptr || obj->theWnd != nullptr) return 1;
+
+	//creating
+	theAdding = obj;
+	obj->theWnd = CreateDialog(GetModuleHandle(0), MAKEINTRESOURCE(resourceid), 0, DialProc);
+	theAdding = nullptr;
+
+	return 0;
+}
+
+LRESULT Seed::WndProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
+{
 	WndObj * current = nullptr;
 
-	if (theAdding)
+	if (theAdding && msg == WM_CREATE)
 	{
-		wndmap.insert(pair<HWND, WndObj*>(wnd, theAdding));
+		WndObj::theWndMap.insert(pair<HWND, WndObj*>(wnd, theAdding));
 		current = theAdding;
 		theAdding->theWnd = wnd;
 		theAdding = nullptr;
 	}
 	else
 	{
-		map<HWND, WndObj*>::iterator it = wndmap.find(wnd);
-		if (it == wndmap.end()) return DefWindowProc(wnd, msg, wp, lp);
+		map<HWND, WndObj*>::iterator it = WndObj::theWndMap.find(wnd);
+		if (it == WndObj::theWndMap.end()) return DefWindowProc(wnd, msg, wp, lp);
 		current = it->second;
 	}
 
@@ -143,20 +144,62 @@ LRESULT autownd::Seed::WndProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
 	else return DefWindowProc(wnd, msg, wp, lp);
 }
 
-//////////////////////////
-
-autownd::WndObj::~WndObj()
+INT_PTR Seed::DialProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
 {
+	WndObj * current = nullptr;
 
+	if (theAdding &&msg == WM_INITDIALOG)
+	{
+		WndObj::theWndMap.insert(pair<HWND, WndObj*>(wnd, theAdding));
+		current = theAdding;
+		theAdding->theWnd = wnd;
+		theAdding = nullptr;
+	}
+	else
+	{
+		map<HWND, WndObj*>::iterator it = WndObj::theWndMap.find(wnd);
+		if (it == WndObj::theWndMap.end()) return FALSE;
+		current = it->second;
+	}
+
+	IMsgProcess * proc = current->getMsgProc(msg);
+	if (proc == nullptr) return FALSE;
+	if (proc->handleMsg(current, wp, lp)) return 0;
+	else return FALSE;
 }
 
-IMsgProcess * autownd::WndObj::getMsgProc(UINT msg)
+//////////////////////////
+
+map<HWND, WndObj*> WndObj::theWndMap;
+
+WndObj::WndObj()
+	:theWnd(nullptr), theMsgMap(nullptr)
+{
+}
+
+WndObj::~WndObj()
+{	
+	theWndMap.erase(theWnd);
+}
+
+IMsgProcess * WndObj::getMsgProc(UINT msg)
 {
 	if(theMsgMap) return theMsgMap->retrieve(msg);
 	else return nullptr;
 }
 
-void autownd::WndObj::setMsgSet(const MsgSet * set)
+void WndObj::setMsgSet(const MsgSet * set)
 {
 	theMsgMap = set;
+}
+
+int autownd::msgLoop()
+{
+	MSG msg;
+	while (GetMessage(&msg, nullptr, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return msg.lParam;
 }

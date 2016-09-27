@@ -4,10 +4,10 @@
 #include "Bullet.h"
 #include <Windows.h>
 
-int main();
-
 namespace autownd
 {
+	int msgLoop();
+
 	class WndObj;
 	class IMsgProcess;
 	class MsgSet;
@@ -15,7 +15,7 @@ namespace autownd
 	class WndObj
 	{
 	public:
-		WndObj() :theWnd(nullptr), theMsgMap(nullptr) {}
+		WndObj();
 		virtual ~WndObj();
 
 		inline HWND wnd() { return theWnd; }
@@ -27,6 +27,8 @@ namespace autownd
 		friend class Seed;
 		const MsgSet *theMsgMap;
 		HWND theWnd;
+
+		static std::map<HWND, WndObj*> theWndMap;
 	};
 
 	//make the process
@@ -83,27 +85,14 @@ namespace autownd
 		void init(memory::ParamChain params);
 
 		int create(WndObj *obj, memory::ParamChain params);
+		int create(WndObj *obj, int resourceid);
+
 	private:
 		std::wstring theName;
 		
 		static WndObj* theAdding;
 		static LRESULT CALLBACK WndProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp);
-	};
-
-	//Base class for programs
-	class WndProgram
-	{
-	public:
-		WndProgram();
-		~WndProgram();
-
-		virtual int init() = 0;
-
-	private:
-		static WndProgram * theRunning;
-		int runMsgLoop();
-
-		friend int ::main();
+		static INT_PTR CALLBACK DialProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp);
 	};
 
 }
