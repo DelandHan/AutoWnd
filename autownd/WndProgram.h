@@ -19,6 +19,9 @@ namespace autownd
 		virtual ~WndObj();
 
 		inline HWND wnd() { return theWnd; }
+		inline void show() { ShowWindow(theWnd, SW_SHOW); }
+
+		int addControl(WndObj* obj, TCHAR * cname, memory::ParamChain params);
 
 		IMsgProcess* getMsgProc(UINT msg);
 		void setMsgSet(const MsgSet *set);
