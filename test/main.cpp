@@ -48,7 +48,6 @@ int TestProgram::init()
 	se2.init({ { "classname",L"Button" } });
 	se2.create(&testForm, {
 		{"title",L"OK"},
-		{"style",WS_CHILD},
 		{"parent",mwnd.wnd()},
 		{"size",pair<int,int>(200,300)},
 		{"pos",pair<int,int>(20,20)}

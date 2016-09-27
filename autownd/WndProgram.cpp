@@ -95,6 +95,7 @@ int Seed::create(WndObj *obj, memory::ParamChain params)
 	find(params, "title", title);
 	find(params, "size", size);
 	find(params, "parent", parent);
+	if (parent) style = WS_CHILD;
 	find(params, "style", style);
 	find(params, "pos", pos);
 
