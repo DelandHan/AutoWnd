@@ -27,9 +27,10 @@ void ExpWnd::init()
 	theMainWnd.show();
 
 	theMainWnd.addControl(&theLeftPanel, WC_LISTVIEW, {
-		{"size",pair<int,int>(200,600)},
-		{"style",LVS_LIST| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL },
-		{"pos",pair<int,int>(20,20)} });
+	//	{"size",pair<int,int>(200,600)},
+		{"style",(long)LVS_LIST| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL |WS_BORDER},
+	//	{"pos",pair<int,int>(20,20)}
+	});
 
 	theLeftPanel.show();
 

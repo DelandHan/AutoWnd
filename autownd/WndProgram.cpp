@@ -182,8 +182,8 @@ int autownd::WndObj::addControl(WndObj * obj, TCHAR * cname, ParamChain params)
 {
 	//params
 	const wchar_t * title = L"Title";
-	std::pair<int, int> size = { CW_USEDEFAULT , 0 }, pos = { CW_USEDEFAULT,0 };
-	int style = 0;
+	std::pair<int, int> size = { 200 , 600 }, pos = { 10,10 };
+	long style = 0;
 
 	//stream params
 	find(params, "title", title);
