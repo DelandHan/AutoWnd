@@ -1,11 +1,12 @@
 #pragma once
+#include "IModule.h"
 class ExpWnd
 {
 public:
 	ExpWnd();
 	~ExpWnd();
 
-	void init();
+	void init(IModule * module);
 
 private:
 	autownd::WndObj theMainWnd;

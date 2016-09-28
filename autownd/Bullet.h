@@ -68,6 +68,14 @@ namespace memory
 		void clone(const Bullet & other);
 		void swap(Bullet & other);
 
+		//save single data
+		template<class T> inline void fill(const T& source) {
+			fill(&source, 1);
+		}
+		template<class T> inline void fill(T* source) {
+			fill(&source, 1);
+		}
+
 		//save to this
 		template<class T> inline void fill(T* source, size_t size) {
 			static const char * type = typeid(T).name();
@@ -112,12 +120,19 @@ namespace memory
 	class BulletChain
 	{
 	public:
-		BulletChain(size_t size);
+		BulletChain();
 		~BulletChain();
 
-		Bullet * at(size_t i = 0);
+		Bullet * subject();
+		Bullet * add();
+		Bullet * at();
 	private:
-		Bullet * theData;
+		struct Connect {
+			Bullet bullet;
+			Connect * next;
+			Connect() :next(nullptr) {}
+			~Connect() { if (next) delete next; }
+		} theFirst, *theLast, *theCurrent;
 	};
 
 	//ParamSet

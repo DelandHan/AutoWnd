@@ -35,17 +35,37 @@ void Bullet::swap(Bullet & other)
 	theValue.swap(other.theValue);
 }
 
-memory::BulletChain::BulletChain(size_t size)
+memory::BulletChain::BulletChain()
+	:theLast(&theFirst), theCurrent(nullptr)
 {
-	theData = new Bullet[size];
 }
 
 memory::BulletChain::~BulletChain()
 {
-	delete theData;
+
 }
 
-Bullet * memory::BulletChain::at(size_t i = 0)
+Bullet * memory::BulletChain::subject()
 {
-	return theData + i;
+	theCurrent = theFirst.next;
+	return &theFirst.bullet;
 }
+
+Bullet * memory::BulletChain::add()
+{
+	Connect *temp = new Connect;
+	theLast->next = temp;
+	theLast = temp;
+	return &temp->bullet;
+}
+
+Bullet * memory::BulletChain::at()
+{
+	if (theCurrent == nullptr) theCurrent = &theFirst;
+	Bullet * bullet = &theCurrent->bullet;
+	theCurrent = theCurrent->next;
+	return bullet;
+}
+
+
+

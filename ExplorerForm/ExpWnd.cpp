@@ -14,7 +14,7 @@ ExpWnd::~ExpWnd()
 {
 }
 
-void ExpWnd::init()
+void ExpWnd::init(IModule * module)
 {
 	static pair<UINT, MsgProc<ExpWnd>> msgpairs[] = { {WM_DESTROY,{this,&ExpWnd::onClose} } };
 	static MsgSet mainWndMsgs(msgpairs, msgpairs);
