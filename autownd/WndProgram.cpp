@@ -183,13 +183,17 @@ int autownd::WndObj::addControl(WndObj * obj, TCHAR * cname, ParamChain params)
 	//params
 	const wchar_t * title = L"Title";
 	std::pair<int, int> size = { CW_USEDEFAULT , 0 }, pos = { CW_USEDEFAULT,0 };
+	int style = 0;
 
 	//stream params
 	find(params, "title", title);
 	find(params, "size", size);
 	find(params, "pos", pos);
+	find(params, "style", style);
 
-	obj->theWnd = CreateWindow(cname, title, WS_CHILD, pos.first, pos.second, size.first, size.second, theWnd, 0, GetModuleHandle(0), nullptr);
+	style |= WS_CHILD;
+
+	obj->theWnd = CreateWindow(cname, title, style, pos.first, pos.second, size.first, size.second, theWnd, 0, GetModuleHandle(0), nullptr);
 
 	if (obj->theWnd == nullptr) return GetLastError();
 	else return 0;

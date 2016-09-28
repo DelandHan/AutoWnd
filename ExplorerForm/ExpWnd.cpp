@@ -26,12 +26,16 @@ void ExpWnd::init()
 	mainSeed.create(&theMainWnd, {});
 	theMainWnd.show();
 
-	cout << theMainWnd.addControl(&theLeftPanel, WC_LISTVIEW, { {"size",pair<int,int>(200,600)},{"pos",pair<int,int>(20,20)} }) << endl;
+	theMainWnd.addControl(&theLeftPanel, WC_LISTVIEW, {
+		{"size",pair<int,int>(200,600)},
+		{"style",LVS_LIST| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL },
+		{"pos",pair<int,int>(20,20)} });
 
 	theLeftPanel.show();
 
-	wchar_t i[2];
-	i[1] = 0;
+	wchar_t i[10];
+	i[9] = 0;
+	memcpy(i, L" , this is not a test", 18);
 	for (i[0] = L'a'; i[0] < L'z'; i[0]++) 
 	{
 		theLeftPanel.at().setText(i, 1).update();
