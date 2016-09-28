@@ -59,6 +59,7 @@ namespace memory
 			fill(source, size);
 		}
 
+		Bullet();
 		Bullet(const Bullet & other);
 		Bullet(Bullet && other);
 		~Bullet() {};
@@ -105,6 +106,18 @@ namespace memory
 	private:
 		Block theValue;
 		const char * theType;
+	};
+
+	//bulletchain
+	class BulletChain
+	{
+	public:
+		BulletChain(size_t size);
+		~BulletChain();
+
+		Bullet * at(size_t i = 0);
+	private:
+		Bullet * theData;
 	};
 
 	//ParamSet
