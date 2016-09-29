@@ -86,7 +86,7 @@ void ExpWnd::beNotified(LPNMHDR data)
 	if (data->hwndFrom==theLeftPanel.wnd())//left panel
 	{
 		LPNMITEMACTIVATE temp = (LPNMITEMACTIVATE)data;
-		if (data->code == LVN_ITEMCHANGED)//on change //LVN_ITEMCHANGED
+		if (data->code == LVN_ITEMCHANGED)//on change
 		{
 			if(temp->uNewState) theData->push({ {"change",temp->lParam} });
 		}
