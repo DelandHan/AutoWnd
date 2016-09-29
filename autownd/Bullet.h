@@ -123,7 +123,7 @@ namespace memory
 		BulletChain();
 		~BulletChain();
 
-		Bullet * subject();
+		Bullet * first();
 		Bullet * add();
 		Bullet * at();
 	private:

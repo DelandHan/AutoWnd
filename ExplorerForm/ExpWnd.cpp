@@ -27,12 +27,15 @@ void ExpWnd::init(IModule * module)
 	theMainWnd.show();
 
 	theMainWnd.addControl(&theLeftPanel, WC_LISTVIEW, {
-	//	{"size",pair<int,int>(200,600)},
-		{"style",(long)LVS_LIST| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL |WS_BORDER},
-	//	{"pos",pair<int,int>(20,20)}
+		{"size",pair<int,int>(200,600)},
+		{"style",(long)LVS_REPORT| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL |WS_BORDER},
+		{"pos",pair<int,int>(20,20)}
 	});
 
+	theLeftPanel.extendStyle(LVS_EX_HEADERINALLVIEWS| LVS_EX_GRIDLINES);
 	theLeftPanel.show();
+
+	theLeftPanel.addColumn(0).set(L"title", 6).set(100).update();
 
 	wchar_t i[10];
 	i[9] = 0;

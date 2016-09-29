@@ -15,6 +15,14 @@ int main()
 	ExpWnd exp;
 	exp.init(0);
 
+	memory::BulletChain bc;
+	bc.first()->fill(233);
+	bc.add()->fill("test");
+	bc.add()->fill(5323);
+
+	cout << *bc.first()->data<int>() << endl;
+	cout << bc.at()->pdata<const char>();
+
 	return autownd::msgLoop();
 
 }

@@ -179,6 +179,11 @@ List::LSet List::selection()
 	return LSet(wnd(), iPos);
 }
 
+void autownd::List::extendStyle(long style)
+{
+	ListView_SetExtendedListViewStyle(wnd(), style);
+}
+
 List::LColumn List::addColumn(int i)
 {
 	return LColumn(wnd(), i);

@@ -90,6 +90,7 @@ namespace autownd
 
 		LSet at(int i = eoi);
 		LSet selection();
+		void extendStyle(long style);
 
 		LColumn addColumn(int i);
 

@@ -35,6 +35,8 @@ void Bullet::swap(Bullet & other)
 	theValue.swap(other.theValue);
 }
 
+///////////////////////
+
 memory::BulletChain::BulletChain()
 	:theLast(&theFirst), theCurrent(nullptr)
 {
@@ -45,7 +47,7 @@ memory::BulletChain::~BulletChain()
 
 }
 
-Bullet * memory::BulletChain::subject()
+Bullet * memory::BulletChain::first()
 {
 	theCurrent = theFirst.next;
 	return &theFirst.bullet;

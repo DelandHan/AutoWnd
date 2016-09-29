@@ -31,7 +31,7 @@
       <Filter>Units</Filter>
     </ClInclude>
     <ClInclude Include="Controls.h">
-      <Filter>Header Files</Filter>
+      <Filter>Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -42,7 +42,7 @@
       <Filter>Units</Filter>
     </ClCompile>
     <ClCompile Include="Controls.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Objects</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
