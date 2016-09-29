@@ -8,11 +8,12 @@ public:
 
 	void init(IModule * module);
 
+	void updateItemlist();
+	void beNotified(LPNMHDR data);
 private:
 	autownd::WndObj theMainWnd;
 	autownd::List theLeftPanel;
 
-	int onClose(autownd::WndObj *obj, WPARAM wp, LPARAM lp);
-
+	IModule * theData;
 };
 

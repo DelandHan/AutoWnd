@@ -1,11 +1,26 @@
 #include "stdafx.h"
 #include "ExpWnd.h"
-#include <iostream>
 
 using namespace autownd;
+using namespace memory;
 using namespace std;
 
+class MsgNotify
+	:public IMsgProcess
+{
+public:
+	MsgNotify(ExpWnd * pro) { theWnd = pro; }
+	~MsgNotify() {}
+	int handleMsg(WndObj *obj, WPARAM wp, LPARAM lp) override {
+		theWnd->beNotified((LPNMHDR)lp);
+		return 1;
+	}
+private:
+	ExpWnd * theWnd;
+};
+
 ExpWnd::ExpWnd()
+	:theData(nullptr)
 {
 }
 
@@ -16,38 +31,69 @@ ExpWnd::~ExpWnd()
 
 void ExpWnd::init(IModule * module)
 {
-	static pair<UINT, MsgProc<ExpWnd>> msgpairs[] = { {WM_DESTROY,{this,&ExpWnd::onClose} } };
-	static MsgSet mainWndMsgs(msgpairs, msgpairs);
+	static MsgSet mainWndMsgs;
+	static MsgNotify notify(this);
+	mainWndMsgs.addMsgPair(WM_DESTROY, &autownd::msg_quit);
+	mainWndMsgs.addMsgPair(WM_NOTIFY, &notify);
+
+	theData = module;
 
 	theMainWnd.setMsgSet(&mainWndMsgs);
 
+	//init main wnd
 	Seed mainSeed;
 	mainSeed.init({});
 	mainSeed.create(&theMainWnd, {});
-	theMainWnd.show();
 
+	//add left panel
 	theMainWnd.addControl(&theLeftPanel, WC_LISTVIEW, {
 		{"size",pair<int,int>(200,600)},
-		{"style",(long)LVS_REPORT| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL |WS_BORDER},
+		{"style",(long)LVS_REPORT| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL| LVS_NOCOLUMNHEADER |WS_BORDER},
 		{"pos",pair<int,int>(20,20)}
 	});
+	theLeftPanel.addColumn(0).set(183).update();
 
-	theLeftPanel.extendStyle(LVS_EX_HEADERINALLVIEWS| LVS_EX_GRIDLINES);
+	theLeftPanel.extendStyle(LVS_EX_HEADERINALLVIEWS|  LVS_EX_FULLROWSELECT);//LVS_EX_GRIDLINES
 	theLeftPanel.show();
 
-	theLeftPanel.addColumn(0).set(L"title", 6).set(100).update();
+	//finished
+	theMainWnd.show();
+	updateItemlist();
+}
 
-	wchar_t i[10];
-	i[9] = 0;
-	memcpy(i, L" , this is not a test", 18);
-	for (i[0] = L'a'; i[0] < L'z'; i[0]++) 
+void ExpWnd::updateItemlist()
+{
+	BulletChain chain;
+	chain.first()->fill("items");
+	theData->pull(&chain);
+
+	Bullet *node = chain.first();
+	theLeftPanel.clear();
+	while (node = chain.at())
 	{
-		theLeftPanel.at().setText(i, 1).update();
+		int type = 0; LPARAM param = 0;
+		chain.at()->inject(&type, 1); chain.at()->inject(&param, 1);
+		theLeftPanel.at()
+			.setText(node->data<TCHAR>(), node->size() / sizeof(TCHAR))
+			.setImage(type)
+			.setParam(param)
+			.update();
 	}
 }
 
-int ExpWnd::onClose(autownd::WndObj * obj, WPARAM wp, LPARAM lp)
+void ExpWnd::beNotified(LPNMHDR data)
 {
-	PostQuitMessage(0);
-	return 1;
+	if (data->hwndFrom==theLeftPanel.wnd())//left panel
+	{
+		LPNMITEMACTIVATE temp = (LPNMITEMACTIVATE)data;
+		if (data->code == LVN_ITEMCHANGED)//on change //LVN_ITEMCHANGED
+		{
+			if(temp->uNewState) theData->push({ {"change",temp->lParam} });
+		}
+		if (data->code == NM_DBLCLK) //on double click
+		{
+			theData->push({ { "dbclick",theLeftPanel.at(temp->iItem).setParam(0).sync()->lParam } });
+		}
+	}
+
 }

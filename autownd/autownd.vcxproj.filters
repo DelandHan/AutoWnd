@@ -19,6 +19,9 @@
     <Filter Include="Units">
       <UniqueIdentifier>{7ae5917d-00be-43b3-86de-e56732eb31c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MsgProcess">
+      <UniqueIdentifier>{1faefbb9-3c8f-4057-b605-a43bd0ebba2e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -33,6 +36,9 @@
     <ClInclude Include="Controls.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="MsgProc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WndProgram.cpp">
@@ -43,6 +49,9 @@
     </ClCompile>
     <ClCompile Include="Controls.cpp">
       <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="MsgProc.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

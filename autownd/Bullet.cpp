@@ -38,7 +38,7 @@ void Bullet::swap(Bullet & other)
 ///////////////////////
 
 memory::BulletChain::BulletChain()
-	:theLast(&theFirst), theCurrent(nullptr)
+	:theLast(&theFirst), theCurrent(&theFirst)
 {
 }
 
@@ -63,7 +63,11 @@ Bullet * memory::BulletChain::add()
 
 Bullet * memory::BulletChain::at()
 {
-	if (theCurrent == nullptr) theCurrent = &theFirst;
+	if (theCurrent == nullptr)
+	{
+		theCurrent = &theFirst;
+		return nullptr;
+	}
 	Bullet * bullet = &theCurrent->bullet;
 	theCurrent = theCurrent->next;
 	return bullet;
