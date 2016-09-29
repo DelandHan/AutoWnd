@@ -37,17 +37,31 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 void ppp::pull(memory::BulletChain * chain)
 {
-	cout << chain->first()->pdata<char>() << endl;
-	wchar_t i[10];
-	i[9] = 0;
-	memcpy(i, L" , this is not a test", 18);
-	for (i[0] = L'A'; i[0] < L'D'; i[0]++)
-	{
-		chain->add()->fill(i, 10);
+	cout << chain->first()->pdata<char>();
+	cout << "\t" << *chain->at()->data<LPARAM>() << endl;
 
-		int para = (i[0] - L'A');
-		chain->add()->fill(para % 3);
-		chain->add()->fill((LPARAM)para);
+	if (memory::streql(chain->first()->pdata<char>(), "read"))
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			chain->add()->fill(L"key", 4);
+			chain->add()->fill(L"value", 6);
+
+		}
+	}
+	else
+	{
+		wchar_t i[10];
+		i[9] = 0;
+		memcpy(i, L" , this is not a test", 18);
+		for (i[0] = L'A'; i[0] < L'z'; i[0]++)
+		{
+			chain->add()->fill(i, 10);
+
+			int para = (i[0] - L'A');
+			chain->add()->fill(para % 3);
+			chain->add()->fill((LPARAM)para);
+		}
 	}
 }
 

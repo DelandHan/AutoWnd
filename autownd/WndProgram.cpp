@@ -84,6 +84,7 @@ int Seed::create(WndObj *obj, memory::ParamChain params)
 	std::pair<int, int> size = { CW_USEDEFAULT , 0 }, pos = { CW_USEDEFAULT,0 };
 	HWND parent = nullptr;
 	long style = WS_OVERLAPPEDWINDOW;
+	long exstyle = 0;
 
 	//stream params
 	find(params, "title", title);
@@ -91,10 +92,11 @@ int Seed::create(WndObj *obj, memory::ParamChain params)
 	find(params, "parent", parent);
 	find(params, "style", style);
 	find(params, "pos", pos);
+	find(params, "exstyle", exstyle);
 
 	//creating
 	theAdding = obj;
-	CreateWindow(theName.c_str(), title, style,
+	CreateWindowEx(exstyle, theName.c_str(), title, style,
 		pos.first, pos.second, size.first, size.second, parent, nullptr, GetModuleHandle(0), nullptr);
 	theAdding = nullptr;
 
@@ -184,16 +186,18 @@ int autownd::WndObj::addControl(WndObj * obj, TCHAR * cname, ParamChain params)
 	const wchar_t * title = L"Title";
 	std::pair<int, int> size = { 200 , 600 }, pos = { 10,10 };
 	long style = 0;
+	long exstyle = 0;
 
 	//stream params
 	find(params, "title", title);
 	find(params, "size", size);
 	find(params, "pos", pos);
 	find(params, "style", style);
+	find(params, "exstyle", exstyle);
 
 	style |= WS_CHILD;
 
-	obj->theWnd = CreateWindow(cname, title, style, pos.first, pos.second, size.first, size.second, theWnd, 0, GetModuleHandle(0), nullptr);
+	obj->theWnd = CreateWindowEx(exstyle, cname, title, style, pos.first, pos.second, size.first, size.second, theWnd, 0, GetModuleHandle(0), nullptr);
 
 	if (obj->theWnd == nullptr) return GetLastError();
 	else return 0;

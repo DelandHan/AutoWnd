@@ -37,9 +37,11 @@ void Bullet::swap(Bullet & other)
 
 ///////////////////////
 
-memory::BulletChain::BulletChain()
-	:theLast(&theFirst), theCurrent(&theFirst)
+memory::BulletChain::BulletChain(size_t size)
+	:theLast(&theFirst), theCurrent(&theFirst), theSize(size)
 {
+	if (theSize == 0) theSize = 1;
+	addLine();
 }
 
 memory::BulletChain::~BulletChain()
@@ -57,20 +59,34 @@ Bullet * memory::BulletChain::add()
 {
 	Connect *temp = new Connect;
 	theLast->next = temp;
+	if (theLast->id < theSize - 1) temp->id = theLast->id + 1;
+	else temp->id = 0;
 	theLast = temp;
 	return &temp->bullet;
 }
 
+void memory::BulletChain::addLine()
+{
+	while (theLast->id < theSize - 1)
+	{
+		add();
+	}
+}
+
 Bullet * memory::BulletChain::at()
 {
-	if (theCurrent == nullptr)
-	{
-		theCurrent = &theFirst;
-		return nullptr;
-	}
+	if (theCurrent->next == nullptr || theCurrent->next->id == 0) return &theCurrent->bullet;
+	
 	Bullet * bullet = &theCurrent->bullet;
 	theCurrent = theCurrent->next;
 	return bullet;
+}
+
+int memory::BulletChain::line()
+{
+	while (theCurrent->id && theCurrent->next) theCurrent = theCurrent->next;
+	if (theCurrent->next == nullptr) return 0;
+	else return 1;
 }
 
 

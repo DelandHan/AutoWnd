@@ -120,19 +120,23 @@ namespace memory
 	class BulletChain
 	{
 	public:
-		BulletChain();
+		BulletChain(size_t size);
 		~BulletChain();
 
 		Bullet * first();
 		Bullet * add();
+		void addLine();
 		Bullet * at();
+		int line();
 	private:
 		struct Connect {
 			Bullet bullet;
 			Connect * next;
-			Connect() :next(nullptr) {}
+			size_t id;
+			Connect() :next(nullptr),id(0) {}
 			~Connect() { if (next) delete next; }
 		} theFirst, *theLast, *theCurrent;
+		size_t theSize;
 	};
 
 	//ParamSet
