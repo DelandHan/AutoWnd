@@ -8,15 +8,28 @@ public:
 
 	void init(IModule * module);
 
+	//update the left panel
 	void updateItemlist(LPARAM param = 0);
+	//update the right panel
 	void updateAttlist(LPARAM param = 0);
+
+	//handle the WM_Notify message of childs
 	void beNotified(LPNMHDR data);
+	//handle button message
 	void clickButton(HWND wnd, int msg);
+
+	//use to receive the edit result of the right panel
 	void setAttribute(TCHAR * buff);
+
+	int updateLayout(autownd::WndObj *obj, WPARAM wp, LPARAM lp);
 private:
 	autownd::WndObj theMainWnd;
 
-	autownd::List theLeftPanel;
+	struct
+	{
+		autownd::List obj;
+		LPARAM param;
+	}theLeftPanel;
 
 	struct
 	{

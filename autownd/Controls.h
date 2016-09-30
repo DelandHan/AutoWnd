@@ -93,6 +93,7 @@ namespace autownd
 		void extendStyle(long style);
 
 		LColumn addColumn(int i);
+		void resizeColumn(int column, int size = LVSCW_AUTOSIZE);
 
 		int getCount();
 

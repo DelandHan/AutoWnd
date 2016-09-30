@@ -120,8 +120,7 @@ void ppp::push(memory::ParamChain chain)
 		convertToStr(keystr, (chain.begin() + 1)->second.pdata<TCHAR>());
 		convertToStr(valuestr, (chain.begin() + 2)->second.pdata<TCHAR>());
 		node = (xml::XMLNode*)*((chain.begin() + 3)->second.data<long>());
-		node->removeAttribute(oldkey);
-		node->setAttribute(keystr, valuestr);
+		node->updateAttribute(oldkey, keystr, valuestr);
 		return;
 	}
 	if (memory::streql(chain.begin()->first, "setstr")) {

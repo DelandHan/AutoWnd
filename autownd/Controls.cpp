@@ -189,6 +189,11 @@ List::LColumn List::addColumn(int i)
 	return LColumn(wnd(), i);
 }
 
+void autownd::List::resizeColumn(int column, int size)
+{
+	ListView_SetColumnWidth(wnd(), column, size);
+}
+
 int List::getCount()
 {
 	return ListView_GetItemCount(wnd());
