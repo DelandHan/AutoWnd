@@ -291,3 +291,110 @@ HTREEITEM Tree::selection()
 {
 	return TreeView_GetSelection(wnd());
 }
+
+////////////////////////////
+
+Edit* Edit::theActive = nullptr;
+WNDPROC Edit::theOldEditProc = nullptr;
+
+autownd::Edit::Edit()
+	:theWnd(nullptr), theRecv(nullptr)
+{
+
+}
+
+autownd::Edit::~Edit()
+{
+	destroy();
+}
+
+void autownd::Edit::destroy()
+{
+	DestroyWindow(theWnd);
+
+	theWnd = nullptr;
+	theActive = nullptr;
+
+}
+
+void autownd::Edit::confirmEdit()
+{
+	if (theRecv == nullptr) return;
+	TCHAR buff[255];
+	GetWindowText(theWnd, buff, 255);
+
+	theRecv->handleMsg(nullptr, (WPARAM)buff, (LPARAM)this);
+	destroy();
+}
+
+int autownd::Edit::init(memory::ParamChain params)
+{
+
+	HWND parent = nullptr;
+	LPRECT rect = nullptr;
+	TCHAR *buff = nullptr;
+
+	memory::find(params, "parent", parent);
+	memory::find(params, "rect", rect);
+	memory::find(params, "buff", buff);
+
+
+	//create wnd
+	HWND edit = CreateWindowEx(0, L"Edit", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL
+		, rect->left + 5, rect->top, rect->right - rect->left - 5, rect->bottom - rect->top - 1, parent, 0, GetModuleHandle(0), 0);
+
+	if (edit == nullptr)
+	{
+		return GetLastError();
+	}
+
+	if (theActive || theWnd) destroy();
+	theWnd = edit;
+
+	HFONT font = (HFONT)SendMessage(parent, WM_GETFONT, 0, 0);
+	SendMessage(edit, WM_SETFONT, (WPARAM)font, FALSE);
+
+	if (buff) SetWindowText(edit, buff);
+	ShowWindow(edit, SW_SHOW);
+	SetFocus(edit);
+
+	theOldEditProc = (WNDPROC)SetWindowLongPtr(edit, GWLP_WNDPROC, (LONG_PTR)subEditProc);
+
+	theActive = this;
+
+	return 0;
+
+}
+
+void autownd::Edit::setRecv(IMsgProcess * recv)
+{
+	theRecv = recv;
+}
+
+LRESULT autownd::Edit::subEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if (theActive == nullptr) return TRUE;
+
+	switch (msg)
+	{
+	case WM_KILLFOCUS:
+	{
+		theActive->destroy();
+	}
+	break;
+	case WM_KEYDOWN:
+	{
+		switch (wParam)
+		{
+		case VK_RETURN:
+			theActive->confirmEdit();
+			return 0;
+		case VK_ESCAPE:
+			theActive->destroy();
+			return 0;
+		}
+	}
+	break;
+	}
+	return CallWindowProc(theOldEditProc, wnd, msg, wParam, lParam);
+}

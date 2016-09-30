@@ -120,4 +120,27 @@ namespace autownd
 		HTREEITEM selection();
 
 	};
+	
+	///////////////////////
+	class Edit
+	{
+	public:
+		Edit();
+		~Edit();
+
+		void destroy();
+		void confirmEdit();
+
+		int init(memory::ParamChain params);
+		void setRecv(IMsgProcess * recv);
+
+	private:
+		HWND theWnd;
+		IMsgProcess * theRecv;
+
+		static Edit * theActive;
+		static WNDPROC theOldEditProc;
+		static LRESULT CALLBACK subEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	};
 }

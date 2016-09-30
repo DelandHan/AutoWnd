@@ -69,6 +69,7 @@ void ppp::push(memory::ParamChain chain)
 {
 	for (const memory::Param * p = chain.begin(); p != chain.end(); p++)
 	{
-		cout << p->first << "\t" << *p->second.data<int>() << endl;
+		if (memory::streql(p->first, "value")) wcout << p->second.pdata<TCHAR>() << endl;
+		else cout << p->first << "\t" << *p->second.data<int>() << endl;
 	}
 }

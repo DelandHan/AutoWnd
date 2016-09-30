@@ -177,6 +177,7 @@ WndObj::WndObj()
 
 WndObj::~WndObj()
 {	
+	DestroyWindow(theWnd);
 	theWndMap.erase(theWnd);
 }
 

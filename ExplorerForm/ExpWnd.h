@@ -11,11 +11,17 @@ public:
 	void updateItemlist(LPARAM param = 0);
 	void updateAttlist(LPARAM param = 0);
 	void beNotified(LPNMHDR data);
+	void clickButton(HWND wnd, int msg);
+	void setAttribute(TCHAR * buff);
 private:
 	autownd::WndObj theMainWnd;
+
 	autownd::List theLeftPanel;
+
 	autownd::List theRightPanel;
-	autownd::WndObj theButton;
+	autownd::Edit theEdit;
+
+	autownd::WndObj theButton; LPARAM theButtonParam;	
 
 	IModule * theData;
 };

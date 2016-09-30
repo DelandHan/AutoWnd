@@ -19,8 +19,24 @@ private:
 	ExpWnd * theWnd;
 };
 
+class MsgCommand
+	:public IMsgProcess
+{
+public:
+	MsgCommand(ExpWnd * pro) { theWnd = pro; }
+	~MsgCommand() {}
+	int handleMsg(WndObj *obj, WPARAM wp, LPARAM lp) override {
+		if (obj) theWnd->clickButton((HWND)lp, HIWORD(wp));
+		else theWnd->setAttribute((TCHAR*)wp);
+		return 1;
+	}
+private:
+	ExpWnd * theWnd;
+
+};
+
 ExpWnd::ExpWnd()
-	:theData(nullptr)
+	:theData(nullptr), theButtonParam(0)
 {
 }
 
@@ -33,8 +49,10 @@ void ExpWnd::init(IModule * module)
 {
 	static MsgSet mainWndMsgs;
 	static MsgNotify notify(this);
+	static MsgCommand command(this);
 	mainWndMsgs.addMsgPair(WM_DESTROY, &autownd::msg_quit);
 	mainWndMsgs.addMsgPair(WM_NOTIFY, &notify);
+	mainWndMsgs.addMsgPair(WM_COMMAND, &command);
 
 	theData = module;
 
@@ -64,8 +82,8 @@ void ExpWnd::init(IModule * module)
 		{ "exstyle", WS_EX_CLIENTEDGE },
 		{ "pos",pair<int,int>(350,80) }
 	});
-	theRightPanel.addColumn(0).set(133).update();
-	theRightPanel.addColumn(1).set(133).update();
+	theRightPanel.addColumn(0).set(120).update();
+	theRightPanel.addColumn(1).set(175).update();
 
 	theRightPanel.extendStyle(LVS_EX_HEADERINALLVIEWS | LVS_EX_FULLROWSELECT| LVS_EX_GRIDLINES);//LVS_EX_GRIDLINES
 	theRightPanel.show();
@@ -77,6 +95,9 @@ void ExpWnd::init(IModule * module)
 		{ "pos",pair<int,int>(20,20) },
 	});
 	theButton.show();
+
+	//set edit callback
+	theEdit.setRecv(&command);
 
 	//finished
 	theMainWnd.show();
@@ -90,7 +111,12 @@ void ExpWnd::updateItemlist(LPARAM param)
 	chain.at()->fill(param);
 	theData->pull(&chain);
 
-	chain.first();
+	//the up button
+	chain.first(); chain.line();
+	SetWindowText(theButton.wnd(), chain.at()->data<TCHAR>());
+	chain.at(); chain.at()->inject(&theButtonParam, 1);
+
+	//redraw left panel
 	theLeftPanel.clear();
 	while (chain.line())
 	{
@@ -141,4 +167,29 @@ void ExpWnd::beNotified(LPNMHDR data)
 		}
 	}
 
+	if (data->hwndFrom == theRightPanel.wnd())//right panel
+	{
+		LPNMITEMACTIVATE temp = (LPNMITEMACTIVATE)data;
+		if (data->code == NM_CLICK)
+		{
+			if (temp->iItem == -1 || temp->iSubItem == -1 || temp->iSubItem == 0) return;
+			TCHAR buff[255]; RECT rect;
+			theRightPanel.at(temp->iItem).getRect(&rect, temp->iSubItem).getText(buff, 255, 1);
+
+			theEdit.init({ {"parent",theRightPanel.wnd()},{"rect",&rect},{"buff",buff} });
+		}
+	}
+}
+
+void ExpWnd::clickButton(HWND wnd, int msg)
+{
+	if (wnd == theButton.wnd())
+	{
+		updateItemlist(theButtonParam);
+	}
+}
+
+void ExpWnd::setAttribute(TCHAR * buff)
+{
+	theData->push({ {"value",buff} });
 }
