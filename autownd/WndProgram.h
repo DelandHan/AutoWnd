@@ -8,6 +8,8 @@ namespace autownd
 {
 	int msgLoop();
 
+	typedef std::pair<int, int> vec;
+
 	class WndObj;
 	class IMsgProcess;
 	class MsgSet;

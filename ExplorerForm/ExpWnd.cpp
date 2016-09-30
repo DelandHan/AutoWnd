@@ -3,7 +3,6 @@
 
 using namespace autownd;
 using namespace memory;
-using namespace std;
 
 class MsgNotify
 	:public IMsgProcess
@@ -26,8 +25,8 @@ public:
 	MsgCommand(ExpWnd * pro) { theWnd = pro; }
 	~MsgCommand() {}
 	int handleMsg(WndObj *obj, WPARAM wp, LPARAM lp) override {
-		if (obj) theWnd->clickButton((HWND)lp, HIWORD(wp));
-		else theWnd->setAttribute((TCHAR*)wp);
+		if (obj) theWnd->clickButton((HWND)lp, HIWORD(wp));//click button
+		else theWnd->setAttribute((TCHAR*)wp);//finish editing
 		return 1;
 	}
 private:
@@ -36,8 +35,11 @@ private:
 };
 
 ExpWnd::ExpWnd()
-	:theData(nullptr), theButtonParam(0)
+	:theData(nullptr)
 {
+	theButton.param = 0;
+	theRightPanel.param = 0;
+	theEdit.subitem = 0;
 }
 
 
@@ -65,10 +67,10 @@ void ExpWnd::init(IModule * module)
 
 	//add left panel
 	theMainWnd.addControl(&theLeftPanel, WC_LISTVIEW, {
-		{"size",pair<int,int>(300,600)},
+		{"size",vec(300,600)},
 		{"style",(long)LVS_REPORT| LVS_EDITLABELS| LVS_SHOWSELALWAYS| LVS_SINGLESEL| LVS_NOCOLUMNHEADER | WS_EX_CLIENTEDGE },
 		{"exstyle", WS_EX_CLIENTEDGE },
-		{"pos",pair<int,int>(20,80)}
+		{"pos",vec(20,80)}
 	});
 	theLeftPanel.addColumn(0).set(278).update();
 
@@ -76,28 +78,28 @@ void ExpWnd::init(IModule * module)
 	theLeftPanel.show();
 
 	//add right panel
-	theMainWnd.addControl(&theRightPanel, WC_LISTVIEW, {
-		{ "size",pair<int,int>(300,600) },
-		{ "style",(long)LVS_REPORT | LVS_EDITLABELS | LVS_SHOWSELALWAYS | LVS_SINGLESEL | LVS_NOCOLUMNHEADER  },
+	theMainWnd.addControl(&theRightPanel.obj, WC_LISTVIEW, {
+		{ "size",vec(300,600) },
+		{ "style",(long)LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL | LVS_NOCOLUMNHEADER  },
 		{ "exstyle", WS_EX_CLIENTEDGE },
-		{ "pos",pair<int,int>(350,80) }
+		{ "pos",vec(350,80) }
 	});
-	theRightPanel.addColumn(0).set(120).update();
-	theRightPanel.addColumn(1).set(175).update();
+	theRightPanel.obj.addColumn(0).set(120).update();
+	theRightPanel.obj.addColumn(1).set(175).update();
 
-	theRightPanel.extendStyle(LVS_EX_HEADERINALLVIEWS | LVS_EX_FULLROWSELECT| LVS_EX_GRIDLINES);//LVS_EX_GRIDLINES
-	theRightPanel.show();
+	theRightPanel.obj.extendStyle(LVS_EX_HEADERINALLVIEWS | LVS_EX_FULLROWSELECT| LVS_EX_GRIDLINES);//LVS_EX_GRIDLINES
+	theRightPanel.obj.show();
 
 	//add up button
-	theMainWnd.addControl(&theButton, WC_BUTTON, {
+	theMainWnd.addControl(&theButton.obj, WC_BUTTON, {
 		{"title",L"Up" },
-		{ "size",pair<int,int>(100,40) },
-		{ "pos",pair<int,int>(20,20) },
+		{ "size",vec(300,40) },
+		{ "pos",vec(20,20) },
 	});
-	theButton.show();
+	theButton.obj.show();
 
 	//set edit callback
-	theEdit.setRecv(&command);
+	theEdit.obj.setRecv(&command);
 
 	//finished
 	theMainWnd.show();
@@ -112,9 +114,12 @@ void ExpWnd::updateItemlist(LPARAM param)
 	theData->pull(&chain);
 
 	//the up button
-	chain.first(); chain.line();
-	SetWindowText(theButton.wnd(), chain.at()->data<TCHAR>());
-	chain.at(); chain.at()->inject(&theButtonParam, 1);
+	chain.first(); chain.at(); chain.at();
+	if (chain.at()->data<int>()) return;
+	
+	chain.line();
+	SetWindowText(theButton.obj.wnd(), chain.at()->data<TCHAR>());
+	chain.at(); chain.at()->inject(&theButton.param, 1);
 
 	//redraw left panel
 	theLeftPanel.clear();
@@ -129,27 +134,32 @@ void ExpWnd::updateItemlist(LPARAM param)
 			.setParam(param)
 			.update();
 	}
+
+	//update right
+	updateAttlist();
 }
 
 void ExpWnd::updateAttlist(LPARAM param)
 {
+	theRightPanel.obj.clear();
+	if (param == 0) return;
 	BulletChain chain(2);
 	chain.first()->fill("read");
 	chain.at()->fill(param);
+	theRightPanel.param = param;
 	theData->pull(&chain);
 
 	chain.first();
-	theRightPanel.clear();
 	while (chain.line())
 	{
 		Bullet *key = chain.at();
 		Bullet *value = chain.at();
 
-		autownd::List::LSet set = theRightPanel.at();
+		autownd::List::LSet set = theRightPanel.obj.at();
 		set.setText(key->data<TCHAR>(), key->size() / sizeof(TCHAR)).update();
 		set.setText(1, value->data<TCHAR>());
 	}
-
+	theRightPanel.obj.at().update();
 }
 
 void ExpWnd::beNotified(LPNMHDR data)
@@ -163,33 +173,82 @@ void ExpWnd::beNotified(LPNMHDR data)
 		}
 		if (data->code == NM_DBLCLK) //on double click
 		{
+			if (temp->iItem == -1) return;
 			updateItemlist(theLeftPanel.at(temp->iItem).setParam(0).sync()->lParam);
+		}
+		if (data->code == LVN_ENDLABELEDIT)
+		{
+			NMLVDISPINFO* info = (NMLVDISPINFO*)data;
+			if (info->item.pszText == nullptr) return;
+			theData->push({ { "setstr",info->item.pszText },{ "item",info->item.lParam } });
+			ListView_SetItemText(theLeftPanel.wnd(), info->item.iItem, info->item.iSubItem, info->item.pszText);
 		}
 	}
 
-	if (data->hwndFrom == theRightPanel.wnd())//right panel
+	if (data->hwndFrom == theRightPanel.obj.wnd())//right panel
 	{
 		LPNMITEMACTIVATE temp = (LPNMITEMACTIVATE)data;
 		if (data->code == NM_CLICK)
 		{
-			if (temp->iItem == -1 || temp->iSubItem == -1 || temp->iSubItem == 0) return;
 			TCHAR buff[255]; RECT rect;
-			theRightPanel.at(temp->iItem).getRect(&rect, temp->iSubItem).getText(buff, 255, 1);
+			if (temp->iSubItem == -1) return;
+			if (temp->iItem == -1) {
+				temp->iItem = theRightPanel.obj.getCount() - 1;
+				temp->iSubItem = 0;
+			}
+			List::LSet set= theRightPanel.obj.at(temp->iItem);
 
-			theEdit.init({ {"parent",theRightPanel.wnd()},{"rect",&rect},{"buff",buff} });
+			set.getText(buff, 255, 0); theEdit.str[0] = buff;
+			set.getText(buff, 255, 1); theEdit.str[1] = buff;
+			set.getRect(&rect, temp->iSubItem);
+			//adjust pos
+			if (temp->iSubItem == 0) {
+				rect.left += 3;
+				rect.right = rect.left + 117;
+			}
+			else rect.left += 5;
+			rect.bottom -= 1;
+			
+			theEdit.subitem = temp->iSubItem;
+
+			theEdit.obj.init({ 
+				{"parent",theRightPanel.obj.wnd()},
+				{"rect",&rect},
+				{"buff",&theEdit.str[temp->iSubItem][0]}
+			});
 		}
 	}
 }
 
 void ExpWnd::clickButton(HWND wnd, int msg)
 {
-	if (wnd == theButton.wnd())
+	if (wnd == theButton.obj.wnd())
 	{
-		updateItemlist(theButtonParam);
+		updateItemlist(theButton.param);
 	}
 }
 
-void ExpWnd::setAttribute(TCHAR * buff)
+void ExpWnd::setAttribute(TCHAR * value)
 {
-	theData->push({ {"value",buff} });
+	if (theEdit.subitem)
+	{
+		theData->push({
+			{ "setkey",theEdit.str[0].c_str() },
+			{ "key",theEdit.str[0].c_str() },
+			{ "value",value },
+			{ "item",theRightPanel.param }
+		});
+	}
+	else
+	{
+		theData->push({
+			{ "setkey",theEdit.str[0].c_str() },
+			{ "key",value },
+			{ "value",theEdit.str[1].c_str() },
+			{ "item",theRightPanel.param }
+		});
+	}
+
+	updateAttlist(theRightPanel.param);
+	theEdit.str[0].clear(); theEdit.str[1].clear();
 }

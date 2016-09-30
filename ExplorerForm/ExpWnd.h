@@ -18,10 +18,25 @@ private:
 
 	autownd::List theLeftPanel;
 
-	autownd::List theRightPanel;
-	autownd::Edit theEdit;
+	struct
+	{
+		autownd::List obj;
+		LPARAM param;
+	}theRightPanel;
+	
+	struct
+	{
+		autownd::Edit obj;
+		std::wstring str[2];
+		size_t subitem;
+	} theEdit;
 
-	autownd::WndObj theButton; LPARAM theButtonParam;	
+	struct
+	{
+		autownd::WndObj obj; 
+		LPARAM param;
+	}theButton;
+		
 
 	IModule * theData;
 };

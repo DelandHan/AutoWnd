@@ -341,7 +341,7 @@ int autownd::Edit::init(memory::ParamChain params)
 
 	//create wnd
 	HWND edit = CreateWindowEx(0, L"Edit", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL
-		, rect->left + 5, rect->top, rect->right - rect->left - 5, rect->bottom - rect->top - 1, parent, 0, GetModuleHandle(0), 0);
+		, rect->left, rect->top, rect->right - rect->left, rect->bottom - rect->top, parent, 0, GetModuleHandle(0), 0);
 
 	if (edit == nullptr)
 	{

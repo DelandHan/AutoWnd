@@ -81,7 +81,7 @@ int Seed::create(WndObj *obj, memory::ParamChain params)
 
 	//params
 	const wchar_t * title = L"Title";
-	std::pair<int, int> size = { CW_USEDEFAULT , 0 }, pos = { CW_USEDEFAULT,0 };
+	vec size = { CW_USEDEFAULT , 0 }, pos = { CW_USEDEFAULT,0 };
 	HWND parent = nullptr;
 	long style = WS_OVERLAPPEDWINDOW;
 	long exstyle = 0;
@@ -185,7 +185,7 @@ int autownd::WndObj::addControl(WndObj * obj, TCHAR * cname, ParamChain params)
 {
 	//params
 	const wchar_t * title = L"Title";
-	std::pair<int, int> size = { 200 , 600 }, pos = { 10,10 };
+	vec size = { 200 , 600 }, pos = { 10,10 };
 	long style = 0;
 	long exstyle = 0;
 

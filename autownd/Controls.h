@@ -133,6 +133,7 @@ namespace autownd
 
 		int init(memory::ParamChain params);
 		void setRecv(IMsgProcess * recv);
+		HWND wnd() { return theWnd; }
 
 	private:
 		HWND theWnd;
